@@ -20,7 +20,16 @@ jobs:
       - name: Start Web Shell & Cloudflare Tunnel
         run: |
           ttyd -p 7681 bash &
+          echo "Starting Cloudflare Tunnel in background..."
+          ./cloudflared tunnel --url http://localhost:7681 > tunnel.log 2>&1 &
+          
+          echo "Waiting for tunnel URL to generate..."
+          sleep 6
+          
           echo "=============================================="
-          echo " CLOUDFLARE TUNNEL URL AKAN MUNCUL DI BAWAH INI:"
+          echo " CLOUDFLARE TUNNEL URL:"
           echo "=============================================="
-          ./cloudflared tunnel --url http://localhost:7681
+          cat tunnel.log
+          
+          # Keep job alive
+          wait
