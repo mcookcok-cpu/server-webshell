@@ -21,13 +21,27 @@ jobs:
           tmate -S /tmp/tmate.sock new-session -d
           tmate -S /tmp/tmate.sock wait tmate-ready
           
+          # Ambil URL dan SSH command
+          SSH_CMD=$(tmate -S /tmp/tmate.sock display -p '#{tmate_ssh}')
+          WEB_URL=$(tmate -S /tmp/tmate.sock display -p '#{tmate_web}')
+          
           echo "=============================================="
           echo " SSH ACCESS COMMAND:"
-          tmate -S /tmp/tmate.sock display -p '#{tmate_ssh}'
+          echo "$SSH_CMD"
           echo "----------------------------------------------"
           echo " WEB ACCESS URL:"
-          tmate -S /tmp/tmate.sock display -p '#{tmate_web}'
+          echo "$WEB_URL"
           echo "=============================================="
+          
+          # Tulis ke GitHub Step Summary agar muncul di halaman utama Run (mudah disalin di HP)
+          echo "### 🚀 Tmate SSH & Web Access Ready!" >> $GITHUB_STEP_SUMMARY
+          echo "**SSH Command (Salin dan paste ke terminal/Termux):**" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
+          echo "$SSH_CMD" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Web Access URL (Buka langsung di browser):**" >> $GITHUB_STEP_SUMMARY
+          echo "[Buka Terminal Web Tmate]($WEB_URL)" >> $GITHUB_STEP_SUMMARY
           
           # Tahan agar job tidak berhenti
           tmate -S /tmp/tmate.sock wait-for tmate-closed
