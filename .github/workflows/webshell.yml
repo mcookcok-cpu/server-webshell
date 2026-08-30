@@ -1,36 +1,33 @@
-name: GitHub Actions Web Shell
+name: GitHub Actions Tmate SSH Shell
 
 on:
   workflow_dispatch:
 
 jobs:
-  run-shell:
+  tmate:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Install ttyd & cloudflared
+      - name: Install Tmate & Curl
         run: |
           sudo apt-get update
-          sudo apt-get install -y ttyd curl
-          curl -L --output cloudflared https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64
-          chmod +x cloudflared
+          sudo apt-get install -y tmate curl
 
-      - name: Start Web Shell & Cloudflare Tunnel
+      - name: Start Tmate Session
         run: |
-          # Gunakan login -f runner untuk autologin otomatis tanpa password prompt
-          ttyd -W -p 7681 login -f runner &
-          echo "Starting Cloudflare Tunnel in background..."
-          ./cloudflared tunnel --url http://localhost:7681 > tunnel.log 2>&1 &
-          
-          echo "Waiting for tunnel URL to generate..."
-          sleep 6
+          # Mulai tmate session di background socket
+          tmate -S /tmp/tmate.sock new-session -d
+          tmate -S /tmp/tmate.sock wait tmate-ready
           
           echo "=============================================="
-          echo " CLOUDFLARE TUNNEL URL:"
+          echo " SSH ACCESS COMMAND:"
+          tmate -S /tmp/tmate.sock display -p '#{tmate_ssh}'
+          echo "----------------------------------------------"
+          echo " WEB ACCESS URL:"
+          tmate -S /tmp/tmate.sock display -p '#{tmate_web}'
           echo "=============================================="
-          cat tunnel.log
           
-          # Keep job alive
-          wait
+          # Tahan agar job tidak berhenti
+          tmate -S /tmp/tmate.sock wait-for tmate-closed
