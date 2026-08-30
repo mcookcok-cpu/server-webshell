@@ -1,0 +1,26 @@
+name: GitHub Actions Web Shell
+
+on:
+  workflow_dispatch:
+
+jobs:
+  run-shell:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Install ttyd & cloudflared
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ttyd curl
+          curl -L --output cloudflared https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64
+          chmod +x cloudflared
+
+      - name: Start Web Shell & Cloudflare Tunnel
+        run: |
+          ttyd -p 7681 bash &
+          echo "=============================================="
+          echo " CLOUDFLARE TUNNEL URL AKAN MUNCUL DI BAWAH INI:"
+          echo "=============================================="
+          ./cloudflared tunnel --url http://localhost:7681
